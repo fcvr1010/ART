@@ -28,13 +28,13 @@
  */
 
 /**
- * @file NB_ARSS_3_Perf.cpp
+ * @file B_AR_1_Perf.cpp
  *
- * A program to benchmark the non-blocking single-writer, single-reader
- * atomic register implementation in NB_ARSS_3.
+ * A program to benchmark the blocking, mutex-based, atomic register
+ * implementation in B_AR_1.
  */
 
-#include "NB_ARSS_3.hpp"
+#include "B_AR_1.hpp"
 
 #include <cstdint>
 #include <iostream>
@@ -45,7 +45,7 @@
 using namespace std;
 using namespace ART;
 
-NB_ARSS_3<int_fast64_t>* reg;
+B_AR_1<int_fast64_t>* reg;
 int_fast64_t no_value_indicator;
 
 atomic<bool> start;
@@ -108,7 +108,7 @@ int main (void)
 	for(unsigned int cntTrial = 0; (cntTrial < 30) && (!error); cntTrial++){
 		/* Initialize. */
 		no_value_indicator = NO_VALUE_TS;
-		reg = new NB_ARSS_3<int_fast64_t>(no_value_indicator);
+		reg = new B_AR_1<int_fast64_t>(no_value_indicator);
 
 		nwrite = 0;
 		nread = 0;

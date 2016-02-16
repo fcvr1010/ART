@@ -50,6 +50,7 @@ int_fast64_t no_value_indicator;
 
 atomic<bool> start;
 atomic<bool> stop;
+atomic<bool> warm_up;
 
 int_fast64_t nwrite;
 int_fast64_t nread;
@@ -65,11 +66,12 @@ static void reader_run()
 
 	while(!stop)
 	{
-		nread++;
+		if(!warm_up) nread++;
+
 		reg->read(&curr_value, &curr_ts);
 		if(curr_ts > prev_ts)
 		{
-			nread_unique++;
+			if(!warm_up) nread_unique++;
 			prev_ts = curr_ts;
 		}
 		else if (curr_ts < prev_ts)
@@ -87,7 +89,8 @@ static void writer_run()
 
 	while(!stop)
 	{
-		nwrite++;
+		if(!warm_up) nwrite++;
+
 		curr_ts++;
 		reg->write(curr_ts, curr_ts);
 	}
@@ -102,7 +105,7 @@ int main (void)
 
 	cout << "millions of W op per sec; millions of R op per sec; millions of unique R op per sec";
 
-	for(unsigned int cntTrial = 0; (cntTrial < 10) && (!error); cntTrial++){
+	for(unsigned int cntTrial = 0; (cntTrial < 30) && (!error); cntTrial++){
 		/* Initialize. */
 		no_value_indicator = NO_VALUE_TS;
 		reg = new NB_ARSS_2<int_fast64_t>(no_value_indicator);
@@ -113,6 +116,7 @@ int main (void)
 
 		start = false;
 		stop = false;
+		warm_up = true;
 
 		try
 		{
@@ -120,6 +124,10 @@ int main (void)
 			writer = new thread(writer_run);
 			reader = new thread(reader_run);
 			start = true;
+
+			/* Warm-up */
+			std::this_thread::sleep_for(std::chrono::seconds(60));
+			warm_up = false;
 
 			/* Run for the predefined number of seconds. */
 			std::this_thread::sleep_for(std::chrono::seconds(runtime_sec));
