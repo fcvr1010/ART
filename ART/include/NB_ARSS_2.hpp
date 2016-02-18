@@ -79,6 +79,14 @@ public:
 		m_status = 1;
 	}
 
+	/** Destructor. */
+	~NB_ARSS_2()
+	{
+		for(unsigned int i=0; i < 4; i++){
+			m_free_fnc(m_buffer[i].obj);
+		}
+	}
+
 	/**
 	 * Write into the atomic register.
 	 *

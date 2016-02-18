@@ -74,6 +74,12 @@ public:
 		m_reg.ts = NO_VALUE_TS;
 	}
 
+	/** Destructor. */
+	~B_AR_1()
+	{
+		m_free_fnc(m_reg.obj);
+	}
+
 	/**
 	 * Write into the atomic register.
 	 *
