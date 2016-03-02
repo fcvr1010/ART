@@ -136,6 +136,34 @@ public:
 		*ts = m_buffer[read_slot].ts;
 	}
 
+	/**
+	 * Read from the atomic register.
+	 *
+	 * This method is identical to the above one but takes a further
+	 * output parameter used to inform the caller about the number
+	 * of CAS-loop iterations that have been performed.
+	 */
+	void read(T* obj, int_fast64_t* ts, int_fast64_t* nretry)
+	{
+		unsigned char local_status, new_status;
+		unsigned char read_slot;
+
+		/* Get read slot, possibly moving the next write to the other pair of slots if needed. */
+		local_status = m_status;
+		*nretry = 0;
+		do
+		{
+			new_status = (local_status & 0xE) | ((~local_status >> 2) & 0x1);
+			*nretry = *nretry + 1;
+		}
+		while(!m_status.compare_exchange_weak(local_status, new_status));
+
+		/* Perform read. */
+		read_slot = (local_status >> 2);
+		m_get_fnc(m_buffer[read_slot].obj, obj);
+		*ts = m_buffer[read_slot].ts;
+	}
+
 protected:
 
 	/** No-value indicator. */
